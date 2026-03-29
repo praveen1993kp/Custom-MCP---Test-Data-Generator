@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Data MCP Server — Setup Guide</title>
+  <style>
+    @page { margin: 1.5cm 2cm; size: A4; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; color: #1e293b; line-height: 1.6; padding: 40px 60px; max-width: 900px; margin: 0 auto; }
+    
+    /* Header */
+    .header { text-align: center; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 3px solid #3b82f6; }
+    .header h1 { font-size: 28px; color: #1e3a5f; margin-bottom: 6px; }
+    .header .subtitle { font-size: 15px; color: #64748b; }
+    .header .version { display: inline-block; background: #3b82f6; color: white; padding: 2px 12px; border-radius: 12px; font-size: 12px; margin-top: 8px; }
+
+    /* sections */
+    h2 { font-size: 20px; color: #1e3a5f; margin-top: 30px; margin-bottom: 12px; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0; }
+    h3 { font-size: 16px; color: #334155; margin-top: 18px; margin-bottom: 8px; }
+
+    p, li { font-size: 14px; }
+    p { margin-bottom: 10px; }
+    ul, ol { margin-left: 24px; margin-bottom: 14px; }
+    li { margin-bottom: 5px; }
+
+    /* Step boxes */
+    .step { background: #f8fafc; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 16px 20px; margin: 16px 0; page-break-inside: avoid; }
+    .step-number { display: inline-block; background: #3b82f6; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; font-size: 14px; margin-right: 8px; }
+    .step-title { font-size: 17px; font-weight: 600; color: #1e3a5f; }
+
+    /* Code blocks */
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px 18px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 10px 0 14px 0; page-break-inside: avoid; }
+    code { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+    p code, li code { background: #e2e8f0; padding: 1px 6px; border-radius: 4px; font-size: 13px; color: #0f172a; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px 0; font-size: 13px; page-break-inside: avoid; }
+    th { background: #1e3a5f; color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+    td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; }
+    tr:nth-child(even) { background: #f8fafc; }
+
+    /* Info boxes */
+    .info-box { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; page-break-inside: avoid; }
+    .info-box.tip { background: #ecfdf5; border-left: 4px solid #10b981; }
+    .info-box.warning { background: #fffbeb; border-left: 4px solid #f59e0b; }
+    .info-box.note { background: #eff6ff; border-left: 4px solid #3b82f6; }
+    .info-box strong { display: block; margin-bottom: 3px; }
+
+    /* Architecture diagram */
+    .architecture { text-align: center; margin: 20px 0; }
+    .arch-box { display: inline-block; border: 2px solid #3b82f6; border-radius: 8px; padding: 10px 18px; margin: 6px 8px; font-size: 13px; font-weight: 600; color: #1e3a5f; background: #eff6ff; }
+    .arch-arrow { display: inline-block; font-size: 20px; color: #94a3b8; vertical-align: middle; margin: 0 4px; }
+
+    /* Footer */
+    .footer { margin-top: 40px; padding-top: 16px; border-top: 2px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8; }
+
+    /* Page break helper */
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <div class="header">
+    <h1>Test Data MCP Server</h1>
+    <div class="subtitle">Setup &amp; Installation Guide for Learners</div>
+    <div class="version">v1.0.0</div>
+  </div>
+
+  <!-- ========== OVERVIEW ========== -->
+  <h2>What Is This Project?</h2>
+  <p>
+    The <strong>testdata-mcp-server</strong> is a <strong>Model Context Protocol (MCP)</strong> server written in TypeScript. It exposes two tools that AI assistants (like GitHub Copilot or Claude) can call to get test data:
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Purpose</th><th>Database Required?</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>createTestData</code></td>
+        <td>Generate synthetic fake data using Faker (in memory only)</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td><code>getLatestProspects</code></td>
+        <td>Fetch real prospect leads from MySQL / Opentaps CRM database</td>
+        <td>Yes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="architecture">
+    <div class="arch-box">AI Assistant<br><small>(VS Code / Claude Desktop)</small></div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-box">MCP Server<br><small>(this project)</small></div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-box">MySQL / Faker<br><small>(data source)</small></div>
+  </div>
+
+
+  <!-- ========== PREREQUISITES ========== -->
+  <h2>Prerequisites</h2>
+  <p>Install the following on your machine before starting:</p>
+
+  <table>
+    <thead>
+      <tr><th>Software</th><th>Minimum Version</th><th>Download Link</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Node.js</td><td>>= 18.0.0</td><td>https://nodejs.org</td></tr>
+      <tr><td>npm</td><td>Comes with Node.js</td><td>—</td></tr>
+      <tr><td>Git</td><td>Any recent version</td><td>https://git-scm.com</td></tr>
+      <tr><td>VS Code</td><td>Latest recommended</td><td>https://code.visualstudio.com</td></tr>
+      <tr><td>MySQL Client <em>(optional)</em></td><td>5.7+</td><td>Only if using <code>getLatestProspects</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box tip">
+    <strong>💡 Quick Check</strong>
+    Open a terminal and run <code>node -v</code> and <code>npm -v</code> to verify Node.js is installed.
+  </div>
+
+
+  <!-- ========== STEP-BY-STEP ========== -->
+  <h2>Step-by-Step Setup</h2>
+
+  <!-- Step 1 -->
+  <div class="step">
+    <span class="step-number">1</span>
+    <span class="step-title">Get the Project Files</span>
+    <p style="margin-top:10px;">Copy or clone the <code>test-data-mcp-server</code> folder to your machine.</p>
+    <pre><code># If shared as a zip, unzip it:
+unzip test-data-mcp-server.zip
+cd test-data-mcp-server
+
+# Or if in a Git repo:
+git clone &lt;repo-url&gt;
+cd test-data-mcp-server</code></pre>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step">
+    <span class="step-number">2</span>
+    <span class="step-title">Install Dependencies</span>
+    <pre><code>npm install</code></pre>
+    <p>This installs all required packages:</p>
+    <ul>
+      <li><code>@faker-js/faker</code> — synthetic data generation</li>
+      <li><code>mysql2</code> — MySQL database driver</li>
+      <li><code>dotenv</code> — loads environment variables from <code>.env</code></li>
+      <li><code>typescript</code> &amp; <code>ts-node</code> — TypeScript compilation &amp; execution</li>
+    </ul>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step">
+    <span class="step-number">3</span>
+    <span class="step-title">Configure Environment Variables</span>
+    <p style="margin-top:10px;">Create a <code>.env</code> file in the project root (or copy the example):</p>
+    <pre><code># .env file
+
+# MySQL Database Configuration
+DB_HOST=20.235.243.83
+DB_PORT=3306
+DB_USER=sandbox
+DB_PASSWORD=your_password_here
+DB_NAME=opentaps
+
+# Environment
+NODE_ENV=development</code></pre>
+
+    <table>
+      <thead>
+        <tr><th>Variable</th><th>Description</th><th>Required?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>DB_HOST</code></td><td>MySQL server hostname or IP address</td><td>Only for <code>getLatestProspects</code></td></tr>
+        <tr><td><code>DB_PORT</code></td><td>MySQL port (default: 3306)</td><td>Optional</td></tr>
+        <tr><td><code>DB_USER</code></td><td>Database username</td><td>Only for <code>getLatestProspects</code></td></tr>
+        <tr><td><code>DB_PASSWORD</code></td><td>Database password</td><td>Only for <code>getLatestProspects</code></td></tr>
+        <tr><td><code>DB_NAME</code></td><td>Database schema name</td><td>Only for <code>getLatestProspects</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box note">
+      <strong>📝 Note</strong>
+      If you only plan to use <code>createTestData</code> (fake data generation), you can skip this step entirely — no database is needed.
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step">
+    <span class="step-number">4</span>
+    <span class="step-title">Build the Project</span>
+    <p style="margin-top:10px;">Compile TypeScript source into JavaScript:</p>
+    <pre><code>npm run build</code></pre>
+    <p>This runs the TypeScript compiler (<code>tsc</code>) and outputs JavaScript files into the <code>dist/</code> folder.</p>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step">
+    <span class="step-number">5</span>
+    <span class="step-title">Run the Server</span>
+    <p style="margin-top:10px;">You have two options:</p>
+    <pre><code># Option A: Run the compiled build (production)
+npm start
+
+# Option B: Run directly from TypeScript (development)
+npm run dev</code></pre>
+    <p>The server starts listening on <strong>stdin</strong> for JSON-RPC 2.0 requests and responds on <strong>stdout</strong>.</p>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step">
+    <span class="step-number">6</span>
+    <span class="step-title">Verify It Works</span>
+    <p style="margin-top:10px;">Test by sending a JSON-RPC request to list available tools:</p>
+    <pre><code># List all tools
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | npm start</code></pre>
+    <p>Test the <code>createTestData</code> tool (no database needed):</p>
+    <pre><code># Generate 3 fake records with Indian IT company names
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"createTestData","arguments":{"count":3,"companyStyle":"indian-it"}}}' | npm start</code></pre>
+    <p>Test the <code>getLatestProspects</code> tool (requires database):</p>
+    <pre><code># Fetch 5 prospects with firstName and companyName
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"getLatestProspects","arguments":{"fields":["firstName","companyName"],"limit":5}}}' | npm start</code></pre>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ========== MCP CLIENT INTEGRATION ========== -->
+  <h2>Connecting to an MCP Client (VS Code / Claude Desktop)</h2>
+
+  <p>The <code>mcp.json</code> file in the project root defines how an MCP client should launch this server:</p>
+
+  <pre><code>{
+  "name": "testdata-mcp-server",
+  "command": "node",
+  "args": ["dist/index.js"],
+  "env": {
+    "DB_HOST": "20.235.243.83",
+    "DB_PORT": "3306",
+    "DB_NAME": "opentaps",
+    "DB_USER": "sandbox",
+    "DB_PASSWORD": "your_password_here"
+  }
+}</code></pre>
+
+  <h3>For VS Code (GitHub Copilot)</h3>
+  <ol>
+    <li>Open VS Code Settings (<code>Cmd + ,</code> on Mac / <code>Ctrl + ,</code> on Windows)</li>
+    <li>Search for <code>MCP</code> in settings</li>
+    <li>Add a new MCP server entry pointing to this project's <code>mcp.json</code></li>
+    <li>Restart VS Code — the tools will now appear in Copilot Chat</li>
+  </ol>
+
+  <h3>For Claude Desktop</h3>
+  <ol>
+    <li>Open Claude Desktop settings → Developer → MCP Servers</li>
+    <li>Add a new server with command: <code>node</code>, args: <code>["dist/index.js"]</code></li>
+    <li>Set the working directory to the project folder</li>
+    <li>Add the environment variables from the table above</li>
+  </ol>
+
+
+  <!-- ========== PROJECT STRUCTURE ========== -->
+  <h2>Project Structure</h2>
+  <pre><code>test-data-mcp-server/
+├── src/                       ← TypeScript source code
+│   ├── index.ts               ← Server entry point (JSON-RPC handler)
+│   ├── db.ts                  ← MySQL connection pool (singleton)
+│   └── tools/
+│       ├── createTestData.ts  ← Faker-based fake data generator
+│       └── getLatestProspects.ts ← MySQL query for prospects
+│
+├── dist/                      ← Compiled JavaScript (generated by build)
+├── .env                       ← Database credentials (local config)
+├── mcp.json                   ← MCP client launch configuration
+├── package.json               ← Dependencies &amp; scripts
+└── tsconfig.json              ← TypeScript compiler settings</code></pre>
+
+
+  <!-- ========== AVAILABLE COMMANDS ========== -->
+  <h2>Available npm Commands</h2>
+  <table>
+    <thead>
+      <tr><th>Command</th><th>What It Does</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>npm install</code></td><td>Install all dependencies</td></tr>
+      <tr><td><code>npm run build</code></td><td>Compile TypeScript → JavaScript ( <code>src/</code> → <code>dist/</code> )</td></tr>
+      <tr><td><code>npm start</code></td><td>Run the compiled server ( <code>node dist/index.js</code> )</td></tr>
+      <tr><td><code>npm run dev</code></td><td>Run directly from TypeScript ( <code>ts-node src/index.ts</code> )</td></tr>
+    </tbody>
+  </table>
+
+
+  <!-- ========== TOOL REFERENCE ========== -->
+  <h2>Tool Reference</h2>
+
+  <h3>1. createTestData</h3>
+  <p>Generates synthetic test data in memory using Faker. No database required.</p>
+  <table>
+    <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>count</code></td><td>number (1–100)</td><td>Yes</td><td>Number of records to generate</td></tr>
+      <tr><td><code>companyStyle</code></td><td>string</td><td>No</td><td><code>"random"</code>, <code>"indian-it"</code>, or <code>"us-tech"</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>2. getLatestProspects</h3>
+  <p>Fetches real prospect records from the Opentaps MySQL database.</p>
+  <table>
+    <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>fields</code></td><td>array of strings</td><td>Yes</td><td>Fields to return: <code>"firstName"</code>, <code>"lastName"</code>, <code>"companyName"</code>, <code>"createdDate"</code></td></tr>
+      <tr><td><code>limit</code></td><td>number (1–50)</td><td>No</td><td>Max records to return (default: 10)</td></tr>
+    </tbody>
+  </table>
+
+
+  <!-- ========== TROUBLESHOOTING ========== -->
+  <h2>Troubleshooting</h2>
+
+  <table>
+    <thead><tr><th>Problem</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>node: command not found</code></td>
+        <td>Install Node.js >= 18 from https://nodejs.org</td>
+      </tr>
+      <tr>
+        <td><code>npm install</code> fails</td>
+        <td>Delete <code>node_modules/</code> and <code>package-lock.json</code>, then run <code>npm install</code> again</td>
+      </tr>
+      <tr>
+        <td><code>Missing required database environment variables</code></td>
+        <td>Create or update the <code>.env</code> file with DB_HOST, DB_USER, DB_PASSWORD, DB_NAME</td>
+      </tr>
+      <tr>
+        <td><code>ECONNREFUSED</code> on database</td>
+        <td>Check that the MySQL host is reachable and credentials are correct</td>
+      </tr>
+      <tr>
+        <td>Build errors</td>
+        <td>Run <code>npm run build</code> and check the TypeScript errors in the output</td>
+      </tr>
+      <tr>
+        <td>Server produces no output</td>
+        <td>The server reads from stdin — pipe a JSON-RPC request into it (see Step 6)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info-box warning">
+    <strong>⚠️ Security Reminder</strong>
+    Never commit the <code>.env</code> file to a public Git repository. Add <code>.env</code> to your <code>.gitignore</code> file.
+  </div>
+
+
+  <!-- ========== FOOTER ========== -->
+  <div class="footer">
+    <p>testdata-mcp-server v1.0.0 — Setup Guide</p>
+    <p>Generated on 29 March 2026</p>
+  </div>
+
+</body>
+</html>

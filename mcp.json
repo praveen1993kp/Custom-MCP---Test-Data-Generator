@@ -1,0 +1,66 @@
+{
+  "name": "testdata-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for QA test data",
+  "command": "node",
+  "args": ["dist/index.js"],
+  "env": {
+    "DB_HOST": "20.235.243.83",
+    "DB_PORT": "3306",
+    "DB_NAME": "opentaps",
+    "DB_USER": "sandbox",
+    "DB_PASSWORD": "Leaf9823DT23132",
+  },
+  "tools": [
+    {
+      "name": "getLatestProspects",
+      "description": "Fetch latest prospect leads from the Opentaps CRM database.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["firstName", "lastName", "companyName", "createdDate"]
+            },
+            "description": "Fields to include in the response (partyId is always included)"
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 10,
+            "description": "Maximum number of prospects to return (default: 10, max: 50)"
+          }
+        },
+        "required": ["fields"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "createTestData",
+      "description": "Generate synthetic test data using Faker. Returns an array of fake prospect records with firstName, lastName, and companyName. Does NOT insert anything into the database — data is generated in memory only.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 1,
+            "description": "Number of test data records to generate (1-100)"
+          },
+          "companyStyle": {
+            "type": "string",
+            "enum": ["random", "indian-it", "us-tech"],
+            "default": "random",
+            "description": "Style of company names: 'random' (Faker), 'indian-it' (TCS, Infosys, etc.), 'us-tech' (Google, Amazon, etc.)"
+          }
+        },
+        "required": ["count"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
